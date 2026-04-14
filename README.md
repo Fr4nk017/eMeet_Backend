@@ -64,6 +64,9 @@ Authorization: Bearer <access_token>
 - `DELETE /events/save/:id`
 - `GET /events/liked`
 - `GET /events/saved`
+- `GET /events/locatario`
+- `POST /events/locatario`
+- `DELETE /events/locatario/:id`
 
 ### Chat
 - `GET /chat/rooms`

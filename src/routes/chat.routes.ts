@@ -129,16 +129,21 @@ router.get('/rooms/:id/messages', async (req, res) => {
   }
 
   const senderIds = Array.from(new Set(data.map((row) => row.user_id)))
-  const { data: profiles, error: profileError } = await req.supabase!
-    .from('profiles')
-    .select('id, name, avatar_url')
-    .in('id', senderIds)
 
-  if (profileError) {
-    return serverError(res, 'No se pudieron cargar los perfiles de chat.')
+  let profileMap = new Map<string, { id: string; name: string; avatar_url: string | null }>()
+
+  if (senderIds.length > 0) {
+    const { data: profiles, error: profileError } = await req.supabase!
+      .from('profiles')
+      .select('id, name, avatar_url')
+      .in('id', senderIds)
+
+    if (profileError) {
+      return serverError(res, 'No se pudieron cargar los perfiles de chat.')
+    }
+
+    profileMap = new Map(profiles.map((p) => [p.id, p]))
   }
-
-  const profileMap = new Map(profiles.map((p) => [p.id, p]))
 
   const messages = data.map((row) => {
     const sender = profileMap.get(row.user_id)

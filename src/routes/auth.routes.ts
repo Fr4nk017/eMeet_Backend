@@ -15,6 +15,9 @@ router.post('/login', async (req, res) => {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
   if (error) {
+    if (error.message.toLowerCase().includes('rate limit')) {
+      return res.status(429).json({ error: 'Demasiados intentos de inicio de sesión. Espera unos minutos e inténtalo de nuevo.' })
+    }
     return badRequest(res, error.message)
   }
 
@@ -22,7 +25,14 @@ router.post('/login', async (req, res) => {
 })
 
 router.post('/register', async (req, res) => {
-  const { name, email, password } = req.body as { name?: string; email?: string; password?: string }
+  const { name, email, password, role, businessName, businessLocation } = req.body as {
+    name?: string
+    email?: string
+    password?: string
+    role?: 'user' | 'locatario' | 'admin'
+    businessName?: string
+    businessLocation?: string
+  }
 
   if (!name || !email || !password) {
     return badRequest(res, 'Nombre, email y contraseña son obligatorios.')
@@ -37,7 +47,12 @@ router.post('/register', async (req, res) => {
     email,
     password,
     options: {
-      data: { name },
+      data: {
+        name,
+        role: role ?? 'user',
+        business_name: businessName ?? null,
+        business_location: businessLocation ?? null,
+      },
     },
   })
 
