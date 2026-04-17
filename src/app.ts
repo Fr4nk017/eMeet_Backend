@@ -8,13 +8,32 @@ import profileRouter from './routes/profile.routes'
 import eventsRouter from './routes/events'
 import chatRouter from './routes/chat'
 import placesRouter from './routes/places.routes'
+import adminRouter from './routes/admin.routes'
 
 const app = express()
 
 app.use(helmet())
+
+const allowedOrigins = new Set(
+  [
+    ...env.FRONTEND_ORIGIN.split(','),
+    'http://localhost:3000',
+    'http://localhost:3001',
+  ]
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+)
+
 app.use(
   cors({
-    origin: env.FRONTEND_ORIGIN,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, true)
+        return
+      }
+
+      callback(new Error('Not allowed by CORS'))
+    },
     credentials: true,
   }),
 )
@@ -30,5 +49,6 @@ app.use('/profile', profileRouter)
 app.use('/events', eventsRouter)
 app.use('/chat', chatRouter)
 app.use('/places', placesRouter)
+app.use('/admin', adminRouter)
 
 export default app
